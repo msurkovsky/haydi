@@ -48,6 +48,36 @@ class LTS(object):
             node.label = self.make_label(node.key)
         return graph
 
+    def eq_check(self, init_state, lts, lts_init_state, max_depth=None):
+        if not all(a in lts.actions for a in self.actions):
+            # trivially not equivalent
+            return False
+
+        new_states = [(init_state, lts_init_state)]
+        found = set(((init_state, lts_init_state), ))
+        depth = 0
+
+        while new_states and (max_depth is None or depth < max_depth):
+            states = new_states
+            new_states = []
+            depth += 1
+            while states:
+                state1, state2 = states.pop()
+                for a in self.actions:
+                    s1 = self.step(state1, a)
+                    s2 = lts.step(state2, a)
+                    if s1 is None and s2 is not None:
+                        return False # TODO: return status if will be desired
+                    if s1 is not None and s2 is None:
+                        return False
+
+                    if s1 is not None and \
+                            s2 is not None and \
+                            (s1, s2) not in found:
+                        found.add((s1, s2))
+                        new_states.append((s1, s2))
+        return True
+
     def make_label(self, state):
         return str(state)
 
