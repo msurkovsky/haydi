@@ -16,6 +16,9 @@ class Node(object):
         self.key = key
         self.arcs = []
 
+    def get_arcs(self, data=None):
+        return [arc for arc in self.arcs if arc.data == data]
+
     def add_arc(self, node, data=None):
         self.arcs.append(Arc(node, data))
 
@@ -37,8 +40,16 @@ class Node(object):
 
 class Graph(object):
 
-    def __init__(self):
+    def __init__(self, data=None): # data format [(node key, arc data, node key)]
         self.nodes = {}
+
+        if data is not None:
+            for key1, data, key2 in data:
+                n1, exists = self.node_check(key1)
+                n2, exists = self.node_check(key2)
+                arcs = n1.get_arcs(data)
+                if n2 not in [arc.node for arc in arcs]:
+                    n1.add_arc(n2, data)
 
     @property
     def size(self):

@@ -88,6 +88,26 @@ class LTS(object):
         return LTSProduct(self, lts)
 
 
+class LTSByGraph (LTS):
+
+    def __init__(self, graph, actions):
+        super(LTSByGraph, self).__init__(actions)
+        self.graph = graph
+
+    def step(self, state, action):
+        node, exists = self.graph.node_check(state)
+        if not exists:
+            return None
+
+        arcs = node.get_arcs(action)
+        if not arcs:
+            return None
+        assert len(arcs) == 1 # TODO: consider non-deterministic LTS
+
+        # return [arc.node.key for arc in arcs]
+        return arcs[0].node.key
+
+
 class LTSProduct(LTS):
 
     def __init__(self, lts1, lts2):
