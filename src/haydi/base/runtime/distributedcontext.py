@@ -493,5 +493,6 @@ def process_batch(arg):
             f.write(traceback.format_exc(e) + "\n")
 
         print(traceback.format_exc(), file=sys.stderr)
+        print("start: {}, size: {}".format(start, size), file=sys.stderr)
 
         raise e
