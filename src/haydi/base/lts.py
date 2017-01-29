@@ -90,6 +90,26 @@ class DLTS(object):
         return DLTSProduct((self, other))
 
 
+class DLTSFromGraph (DLTS):
+
+    def __init__(self, graph, actions):
+        super(DLTSFromGraph, self).__init__(actions)
+        self.graph = graph
+
+    def step(self, state, action):
+        node, exists = self.graph.node_check(state)
+        if not exists:
+            return None
+
+        arcs = node.get_arcs(action)
+        if not arcs:
+            return None
+        assert len(arcs) == 1 # TODO: consider non-deterministic LTS(?)
+
+        # return [arc.node.key for arc in arcs]
+        return arcs[0].node.key
+
+
 class DLTSProduct(DLTS):
 
     def __init__(self, systems):
