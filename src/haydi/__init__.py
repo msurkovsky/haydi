@@ -15,7 +15,8 @@ from .base.permutations import Permutations  # noqa
 
 # Others
 from .base.system import System  # noqa
-from .base.lts import DLTS, DLTSProduct  # noqa
+from .base.lts import DLTS, DLTSProduct, DLTSByGraph  # noqa
+from .base.graph import Graph
 
 # Basic types
 from .base.boolean import Boolean  # noqa
