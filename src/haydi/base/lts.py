@@ -109,6 +109,12 @@ class DLTSFromGraph (DLTS):
         # return [arc.node.key for arc in arcs]
         return arcs[0].node.key
 
+    def get_enabled_actions(self, state):
+        node, exists = self.graph.node_check(state)
+        if exists:
+            return set(arc.data for arc in node.get_arcs())
+        return set()
+
 
 class DLTSProduct(DLTS):
 
