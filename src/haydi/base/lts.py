@@ -96,6 +96,10 @@ class DLTSFromGraph (DLTS):
         super(DLTSFromGraph, self).__init__(actions)
         self.graph = graph
 
+    @property
+    def size(self):
+        return self.graph.size
+
     def step(self, state, action):
         node, exists = self.graph.node_check(state)
         if not exists:
