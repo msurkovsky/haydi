@@ -1,20 +1,20 @@
 import sys
-sys.path.insert(0, "../../src")
+sys.path.insert(0, "../src")
 
 import haydi as hd # noqa
 import haydi.ext.automata # noqa
 from haydi.ext.xenv import ExperimentEnv # noqa
 from pprint import pprint # noqa
 
-N_SIZE = 4 # Number of states
+N_SIZE = 3 # Number of states
 A_SIZE = 2 # Number of actions (alphabet size)
 
 COUNT = None        # None = iterate all
 
-MIN_LEVEL = 3
-MAX_SAMPLES_PER_LEVEL = 300
+MIN_LEVEL = 0
+MAX_SAMPLES_PER_LEVEL = 10000
 
-def compute(n_size, a_size, count):
+def compute(n_size, a_size, count=None):
     states = hd.Range(n_size)
     actions = hd.Range(a_size)
 
@@ -28,7 +28,7 @@ def compute(n_size, a_size, count):
             cs = new_states.pop()
             processed.append(cs)
 
-            if len(processed) == N_SIZE:
+            if len(processed) == n_size:
                 break
 
             for a in actions:
@@ -43,7 +43,7 @@ def compute(n_size, a_size, count):
         if not are_all_states_covered(dfa):
             return False
 
-        max = N_SIZE ** 2
+        max = n_size ** 2
         dfa_lts = DfaLTS(dfa, actions)
         synchronizable_pairs = set()
 
@@ -69,17 +69,20 @@ def compute(n_size, a_size, count):
 
     def compute_shortes_sword(dfa):
         dfa_lts = DfaLTS(dfa, actions)
-        lts_n_tuple = hd.DLTSProduct(tuple(dfa_lts for i in xrange(N_SIZE)))
+        lts_n_tuple = hd.DLTSProduct(tuple(dfa_lts for i in xrange(n_size)))
 
         def same_states(states_path_pair):
             states = states_path_pair[0]
             return all(s == states[0] for s in states)
 
-        witnesses = lts_n_tuple.bfs_path(tuple(range(N_SIZE))) \
+        witnesses = lts_n_tuple.bfs_path(tuple(range(n_size))) \
                                     .filter(same_states) \
                                     .max_all(lambda (states, path): -len(path)) \
                                     .run()
 
+        if witnesses is None:
+            print "no witness"
+            return None
         # (dfa, the length, [(sync_state, path)])
         return (dfa, len(witnesses[0][1]), [(states[0], path)
                                             for (states, path) in witnesses])
@@ -89,9 +92,9 @@ def compute(n_size, a_size, count):
     else:
         source = dfa
 
-    results = source.filter(is_synchronizable).map(compute_shortes_sword)
-    results = results.filter(lambda x: x[1] >= MIN_LEVEL)
-    results = results.groups(lambda x: x[1], MAX_SAMPLES_PER_LEVEL)
+    results = source.map(compute_shortes_sword).filter(lambda witness: witness is not None)
+    # results = results.filter(lambda x: x[1] >= MIN_LEVEL)
+    # results = results.groups(lambda x: x[1], MAX_SAMPLES_PER_LEVEL)
 
     return results
 
@@ -106,6 +109,16 @@ class DfaLTS(hd.DLTS):
 
 
 def main():
+
+    results = compute(3, 2)
+    i = 0
+    for result in results:
+        i += 1
+        print "{}: {}".format(i, result)
+
+    print  "# of results {}".format(i)
+
+    """
     env = ExperimentEnv("dfa",
                         globals(),
                         [ "N_SIZE", "A_SIZE", "COUNT",
@@ -126,7 +139,7 @@ def main():
         print "Example of level {}:".format(best)
         pprint(results[best][0])
         # TODO: dfa to graph
-
+    """
 
 if __name__ == "__main__":
     main()

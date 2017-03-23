@@ -16,28 +16,40 @@ def compute(nstates, nsymbols):
     states = hd.Range(nstates)
     alphabet = hd.Range(nsymbols)
 
-    def are_all_states_covered(dfa):
-        new_states = set([ 0 ]) # 0 is used as starting state
-        processed = []
+    def is_weakly_connected(dfa):
+        # prepare undirected version
+        ugraph = []
+
+        for ((s1, a), s2) in dfa.iteritems():
+            ugraph.append((s1, s2))
+            ugraph.append((s2, s1))
+
+        print "u-graph-a-: ", ugraph
+        print set(ugraph)
+        ugraph = dict(ugraph)
+
+        print "u-graph-b-: ", ugraph
+
+        # check connectiveness
+        new_states = [0]
+        processed = set()
 
         while new_states:
             cs = new_states.pop()
-            processed.append(cs)
+            processed.add(cs)
 
-            if len(processed) == nstates:
-                break
+            # if len(processed) == nstates:
+            #     break
 
-            for a in alphabet:
-                ns = dfa[(cs, a)]
-                if ns not in processed:
-                    new_states.add(ns)
+            ns = ugraph[cs]
+            if ns not in processed:
+                new_states.append(ns)
 
-        processed.sort()
-        return processed == list(states)
+        return processed == set(states)
 
     def is_synchronizable(dfa):
-        if not are_all_states_covered(dfa):
-            return False
+        # if not are_all_states_covered(dfa):
+        #     return False
 
         max = nstates ** 2
         dfa_lts = DfaLTS(dfa, alphabet)
@@ -89,14 +101,18 @@ def compute(nstates, nsymbols):
     lrule = hd.Product((states, alphabet))
     deltaf = hd.Mapping(lrule, states)
 
-    return deltaf.map(compute_shortest_sync_word).filter(lambda x: x is not None)
+    return deltaf.map(lambda dfa: (dfa, is_weakly_connected(dfa), is_synchronizable(dfa)))
 
 
 if __name__ == "__main__":
     results = compute(3, 2)
     i = 0
-    for result in results:
+    j = 0
+    for dfa, covered, synced in results:
         i += 1
-        print "{}: {}".format(i, result)
+        if synced and not covered:
+            j += 1
+            print "{}: {}/{}".format(i, synced, covered)
+            print "{}-dfa: {}".format(i, dfa)
 
-    print "# of results {}".format(i)
+    print "# of results {} / # of sync and not covered {}".format(i, j)
