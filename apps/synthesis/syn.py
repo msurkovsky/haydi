@@ -27,7 +27,7 @@ def compute(searched_lts,
 
     pn = m0 * wi * wo
 
-    def check_equivalence(pn_system):
+    def equivalent(pn_system):
         pn_lts = PnLTS(pn_system, trans)
 
         pair = hd.DLTSProduct((searched_lts, pn_lts))
@@ -37,18 +37,16 @@ def compute(searched_lts,
             a = set(frozenset(sy.get_enabled_actions(st))
                     for sy, st in zip ((searched_lts, pn_lts), states))
             if len(a) > 1:
-                return (pn_system, False)
+                return False
 
-        return (pn_system, True)
+        return True
 
     if count is None:
         source = pn
     else:
         source = pn.generate(count)
 
-    return source.map(check_equivalence) \
-                 .filter(lambda (pn, eq): eq) \
-                 .map(lambda (pn, eq): pn)
+    return source.filter(equivalent)
 
 class hashabledict(dict):
 
@@ -100,7 +98,7 @@ if __name__ == "__main__":
                         globals(),
                         ["COUNT"])
 
-    ## SMALL TEST
+    ## SMALL TEST -- test_small_example1 (from tests)
     n_events = 2
     max_in_arc_weight = 1
     max_out_arc_weight = 1
@@ -113,66 +111,6 @@ if __name__ == "__main__":
         (3, 1, 4)
     ]), hd.Range(n_events))
     init_state = 0
-    # solution = ( # pn system with RG: 0->1->1 | 1->0->1
-    #     # m0
-    #     { 0: 1, 1: 1 },
-    #     # wi
-    #     {(0, 0): 1,
-    #      (0, 1): 0,
-    #      (1, 0): 0,
-    #      (1, 1): 1},
-    #     # wo
-    #     {(0, 0): 0,
-    #      (0, 1): 1,
-    #      (1, 0): 0,
-    #      (1, 1): 0}
-    # )
-    # solution_lts = PnLTS(solution, hd.Range(n_events))
-    # solution_lts_init_state = hashabledict({0: 1, 1: 1})
-
-
-    ## REAL TEST
-    # n_events = 3
-    # max_in_arc_weight = 2
-    # max_out_arc_weight = 2
-    # max_init_marking = 2
-    # searched_lts = hd.DLTSFromGraph(hd.Graph([
-    #     (0, 0, 1),
-    #     (1, 0, 2),
-    #     (2, 1, 3),
-    #     (3, 1, 4),
-    #     (4, 2, 5),
-    #     (5, 2, 0),
-    # ]), hd.Range(n_events))
-    # init_state = 0
-
-    # solution = ( # pn system with RG: 0->0->1->1->2->2->0 ...
-    #     # m0
-    #     {0: 2, 1: 0, 2: 2},
-    #     # wi
-    #     {(0, 0): 2,
-    #      (0, 1): 1,
-    #      (1, 0): 0,
-    #      (1, 1): 2,
-    #      (0, 2): 0,
-    #      (2, 0): 1,
-    #      (2, 2): 2,
-    #      (1, 2): 1,
-    #      (2, 1): 0},
-    #     # wo
-    #     {(0, 0): 2,
-    #      (0, 1): 1,
-    #      (1, 0): 0,
-    #      (1, 1): 2,
-    #      (0, 2): 0,
-    #      (2, 0): 1,
-    #      (2, 2): 2,
-    #      (1, 2): 1,
-    #      (2, 1): 0}
-    # )
-    # solution_lts = PnLTS(solution, hd.Range(n_events))
-    # solution_lts_init_state = hashabledict({0: 2, 1: 0, 2: 2})
-
 
     searched_lts.make_graph(init_state).write("input-lts.dot")
     results = env.run(
