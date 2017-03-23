@@ -53,6 +53,9 @@ class Map(object):
     def to_dict(self):
         return dict(self.items)
 
+    def __getitem__ (self, key):
+        return self.get(key)
+
     def __len__(self):
         return len(self.items)
 
