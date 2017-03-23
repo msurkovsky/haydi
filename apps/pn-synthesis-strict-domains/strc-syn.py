@@ -36,23 +36,25 @@ def compute(searched_lts,
 
     pn = m0 * wi * wo
 
-    def check_equivalence(pn_system):
+    def equivalent(pn_system):
         pn_lts = PnLTS(pn_system, trans)
-
         pair = hd.DLTSProduct((searched_lts, pn_lts))
-
-        # pn_tmp = pn_system[0].to_dict() # TODO (FIXME): pn_system[0] is a strict map
         init_state = (searched_lts_init_state, pn_system[0])
 
+        print "INIT:", init_state
+        print "TEST:", pair.bfs(init_state)
+        i = 0
         for states in pair.bfs(init_state):
-            a1 = searched_lts.get_enabled_actions(states[0])
-            a2 = pn_lts.get_enabled_actions(states[1])
-            for aa2 in a2:
-                print type (aa2), aa2
-            # print "A1:", set(a1), "A2:", set(a2)
-            # set(frozenset(((a1), set(a2))))
-            # print set(frozenset((a1, a2)))
-            return False
+            print "T[{}]: {}".format(i, states)
+            i += 1
+            enabled1 = searched_lts.get_enabled_actions(states[0])
+            # print "searched", states[0], enabled1
+            enabled2 = pn_lts.get_enabled_actions(states[1])
+
+            # transform set of atoms on indexes
+            enabled2 = map(lambda e: e.index, enabled2) # TODO: ugly solution
+
+            a = set((frozenset(enabled1), frozenset(enabled2)))
             # a = set(frozenset(sy.get_enabled_actions(st))
             #         for sy, st in zip ((searched_lts, pn_lts), states))
             if len(a) > 1:
@@ -64,7 +66,7 @@ def compute(searched_lts,
     else:
         source = pn.generate(count)
 
-    return source.filter(check_equivalence)
+    return source.filter(equivalent)
 
 class hashabledict(dict):
 
@@ -82,6 +84,7 @@ class PnLTS(hd.DLTS):
     def get_enabled_actions(self, marking):
         actions = {} # { action: enabled }
         for (p, t), w in self.wi.to_dict().iteritems():
+        # for (p, t), w in self.wi.iteritems():
             if w > 0:
                 if t not in actions:
                     actions[t] = True
@@ -90,6 +93,7 @@ class PnLTS(hd.DLTS):
 
     def is_enabled(self, marking, transition):
         for (p, t), w in self.wi.to_dict().iteritems():
+        # for (p, t), w in self.wi.iteritems():
             if (t == transition and w > marking[p]):
                 return False
         return True;
@@ -97,10 +101,12 @@ class PnLTS(hd.DLTS):
     def fire(self, marking, transition):
         new_marking = copy.deepcopy(marking)
         for (p, t), w in self.wi.to_dict().iteritems():
+        # for (p, t), w in self.wi.iteritems():
             if (t == transition):
                 new_marking[p] -= w
 
         for (t, p), w in self.wo.to_dict().iteritems():
+        # for (t, p), w in self.wo.iteritems():
             if (t == transition):
                 new_marking[p] += w
         return new_marking
@@ -116,17 +122,18 @@ if __name__ == "__main__":
                         globals(),
                         ["COUNT"])
 
+
     ## SMALL TEST
     n_events = 2
     max_in_arc_weight = 1
     max_out_arc_weight = 1
     max_init_marking = 1
     searched_lts = hd.DLTSByGraph(hd.Graph([
-        (0, "T0", 1),
-        (0, "T1", 2),
-        (1, "T1", 3),
-        (2, "T0", 3),
-        (3, "T1", 4)
+        (0, 0, 1),
+        (0, 1, 2),
+        (1, 1, 3),
+        (2, 0, 3),
+        (3, 1, 4)
     ]), hd.Range(n_events))
     init_state = 0
     # solution = ( # pn system with RG: 0->1->1 | 1->0->1
