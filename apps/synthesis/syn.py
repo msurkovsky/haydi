@@ -31,7 +31,7 @@ def compute(searched_lts,
         pn_lts = PnLTS(pn_system, trans)
 
         pair = hd.DLTSProduct((searched_lts, pn_lts))
-        init_state = (searched_lts_init_state, hashabledict(pn_system[0]))
+        init_state = (searched_lts_init_state, pn_system[0])
 
         for states in pair.bfs(init_state):
             a = set(frozenset(sy.get_enabled_actions(st))
@@ -48,10 +48,10 @@ def compute(searched_lts,
 
     return source.filter(equivalent)
 
-class hashabledict(dict):
+# class hashabledict(dict): # the basictype Map will be hashable!
 
-    def __hash__(self):
-        return hash(tuple(sorted(self.items())))
+#     def __hash__(self):
+#         return hash(tuple(sorted(self.items())))
 
 class PnLTS(hd.DLTS):
 
@@ -63,26 +63,26 @@ class PnLTS(hd.DLTS):
 
     def get_enabled_actions(self, marking):
         actions = {} # { action: enabled }
-        for (p, t), w in self.wi.iteritems():
+        for (p, t), w in self.wi.items:
             if w > 0:
                 if t not in actions:
                     actions[t] = True
-                actions[t] &= (w <= marking[p])
+                actions[t] &= (w <= marking.get(p))
         return set(t for t, enabled in actions.iteritems() if enabled)
 
     def is_enabled(self, marking, transition):
-        for (p, t), w in self.wi.iteritems():
-            if (t == transition and w > marking[p]):
+        for (p, t), w in self.wi.items:
+            if (t == transition and w > marking.get(p)):
                 return False
         return True;
 
-    def fire(self, marking, transition):
-        new_marking = copy.deepcopy(marking)
-        for (p, t), w in self.wi.iteritems():
+    def fire(self, marking, transition): # TODO: continue here
+        new_marking = marking.items
+        for (p, t), w in self.wi.items:
             if (t == transition):
                 new_marking[p] -= w
 
-        for (t, p), w in self.wo.iteritems():
+        for (t, p), w in self.wo.items:
             if (t == transition):
                 new_marking[p] += w
         return new_marking
