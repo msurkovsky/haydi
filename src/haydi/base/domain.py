@@ -179,6 +179,9 @@ class Domain(object):
     def create_skip_iter(self, step=0):
         raise NotImplementedError()
 
+    def create_cn_iter(self):
+        raise NotImplementedError()
+
     def create_step_iter(self, step):
         if self.filtered:
             return self.create_skip_iter(step)
@@ -211,6 +214,9 @@ class Domain(object):
             # but it is quite ok for now:)
             domain.steps = count
             return domain.take(count)
+
+    def canonize(self):
+        return CanonicalsDomain(self.create_cn_iter)
 
     def __repr__(self):
         ITEMS_LIMIT = 4
@@ -268,6 +274,11 @@ class GeneratingDomain(Domain):
     def create_step_iter(self, step):
         return self.create_iter()
 
+
+class CanonicalsDomain(GeneratingDomain):
+
+    def create_iter(self, step=0):
+        return self.generate_fn()
 
 from .product import Product  # noqa
 from .join import Join  # noqa
