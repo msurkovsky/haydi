@@ -24,6 +24,7 @@ def compute(n_size, a_size, count):
         new_states = set([ 0 ]) # 0 is used as starting state
         processed = []
 
+        dfa_as_dict = dfa.to_dict()
         while new_states:
             cs = new_states.pop()
             processed.append(cs)
@@ -32,7 +33,7 @@ def compute(n_size, a_size, count):
                 break
 
             for a in actions:
-                ns = dfa[(cs, a)]
+                ns = dfa_as_dict[(cs, a)]
                 if ns not in processed:
                     new_states.add(ns)
 
@@ -99,7 +100,7 @@ def compute(n_size, a_size, count):
 class DfaLTS(hd.DLTS):
     def __init__(self, dfa, actions):
         hd.DLTS.__init__(self, actions)
-        self.dfa = dfa
+        self.dfa = dfa.to_dict()
 
     def step(self, state, action):
         return self.dfa[(state, action)]
