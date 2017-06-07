@@ -23,7 +23,7 @@ class DLTS(object):
                                         max_depth,
                                         return_depth,
                                         max_states)
-        domain = Domain(None, False, name="lts-bfs")
+        domain = Domain(name="lts-bfs")
         domain.create_iter = create_iter
         return domain
 
@@ -37,7 +37,7 @@ class DLTS(object):
                                          init_state,
                                          max_depth,
                                          max_states)
-        domain = Domain(None, False, name="lts-bfs-path")
+        domain = Domain(name="lts-bfs-path")
         domain.create_iter = create_iter
         return domain
 
