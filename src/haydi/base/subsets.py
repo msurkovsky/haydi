@@ -101,6 +101,17 @@ class Subsets(Domain):
         for item in canonical_builder(domain, Set((), True), make_fn, None):
             yield item
 
+    def decompose(self):
+        return (self.domain,)
+
+    def is_same(self, domain):
+        if not isinstance(domain, Subsets):
+            return False
+
+        return self.domain.is_same(domain.domain) and \
+            self.min_size == domain.min_size and \
+            self.max_size == domain.max_size
+
     def _remap_domains(self, transformation):
         return Subsets(transformation(self.domain), self.min_size,
                        self.max_size, self.name)
