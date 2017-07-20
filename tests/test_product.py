@@ -352,3 +352,20 @@ def test_product_to_values_maxsize():
     assert isinstance(v, hd.Product)
     assert all(isinstance(d, hd.Values) for d in v.domains)
     assert list(v) == list(p)
+
+def test_product_decompose():
+    r = hd.Range(10)
+    aset = hd.ASet(5, "n")
+    p = r * r
+
+    assert p.decompose() == (r, r)
+    # assert (p * aset).decompose() == (p, aset) # TODO: is a question what is wrong
+    assert hd.Product((p, aset)).decompose() == (p, aset)
+
+def test_product_is_same():
+    r = hd.Range(10)
+    aset = hd.ASet(5, "n")
+    p = r * r
+
+    assert p.is_same(r * hd.Range(10))
+    assert (p * aset).is_same((r * r) * hd.ASet(5, "b"))

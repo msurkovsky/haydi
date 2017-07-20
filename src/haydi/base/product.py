@@ -51,6 +51,20 @@ class Product(Domain):
         else:
             return self._create_product_step_iter(step)
 
+    def decompose(self):
+        return tuple(self.domains)
+
+    def is_same(self, domain):
+        if not isinstance(domain, Product):
+            return False
+
+        if len(self.domains) != len(domain.domains) or \
+                self.unordered != domain.unordered:
+            return False
+
+        return all(d1.is_same(d2)
+                   for d1, d2 in zip(self.domains, domain.domains))
+
     def _init_iters(self, step):
         if step:
             iters = []
