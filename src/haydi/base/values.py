@@ -39,6 +39,14 @@ class Values(Domain):
     def to_values(self, max_size=None):
         return self
 
+    def decompose(self):
+        return tuple()
+
+    def is_same(self, domain):
+        if not isinstance(domain, Values):
+            return False
+
+        return self.values == domain.values
 
 class CnfValues(Domain):
 
@@ -61,3 +69,12 @@ class CnfValues(Domain):
 
     def to_cnf_values(self, max_size=None):
         return self
+
+    def decompose(self):
+        return tuple()
+
+    def is_same(self, domain):
+        if not isinstance(domain, CnfValues):
+            return False
+
+        return self.values == domain.values

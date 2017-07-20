@@ -72,3 +72,13 @@ def test_cnfs_to_cnf_values():
 
     c = hd.CnfValues((a0,))
     assert c == c.to_cnf_values()
+
+def test_values_decompose():
+    return not hd.Values((1,2,3,4)).decompose() # empty decomposition
+
+def test_values_is_same():
+    v1 = hd.Values((1,2,3,4))
+    v2 = hd.Values(("abc", 321, (2.2, 1)))
+
+    assert not v1.is_same(v2)
+    assert hd.Values([]).is_same(hd.Values(tuple()))
