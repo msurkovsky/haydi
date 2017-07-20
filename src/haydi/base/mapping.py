@@ -54,6 +54,16 @@ class Mappings(Domain):
         return canonical_builder(
             value_domain, Map(()), make_fn, get_bounds(keys[0]))
 
+    def decompose(self):
+        return (self.key_domain, self.value_domain)
+
+    def is_same(self, domain):
+        if not isinstance(domain, mapping):
+            return False
+
+        return self.key_domain.is_same(domain.key_domain) and \
+            self.value_domain.is_same(domain.value_domain);
+
     def _remap_domains(self, transformation):
         return Mappings(transformation(self.key_domain),
                         transformation(self.value_domain),

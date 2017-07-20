@@ -80,3 +80,19 @@ def test_mapping_to_values_maxsize():
     assert isinstance(v.key_domain, hd.Values)
     assert isinstance(v.value_domain, hd.Values)
     assert list(c) == list(v)
+
+def test_mapping_decompose():
+    a = hd.Range(5)
+    b = hd.Range(6)
+    c = hd.Mappings(a, b)
+
+    assert c.decompose() == (a, b)
+
+
+def test_mapping_is_same():
+    a = hd.Range(5)
+    b = hd.Range(6)
+    c = hd.Mappings(a, b)
+
+    assert c.is_same(hd.Mappings(a, hd.Range(6)))
+    assert not c.is_same(hd.Mappings(c, hd.Boolean()))
