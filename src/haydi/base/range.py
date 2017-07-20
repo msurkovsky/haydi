@@ -79,3 +79,14 @@ class Range(Domain):
 
     def create_cn_iter(self):
         return self.create_iter()
+
+    def decompose(self):
+        return tuple()
+
+    def is_same(self, domain):
+        if not isinstance(domain, Range):
+            return False
+
+        return self.start == domain.start and \
+            self.end == domain.end and \
+            self.step == domain.step

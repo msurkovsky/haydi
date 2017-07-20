@@ -81,3 +81,17 @@ def test_range_to_values_maxsize():
     v = r.to_values(max_size=r.size - 1)
 
     assert r == v
+
+def test_range_is_same():
+    a = hd.Range(4)
+    b = hd.Range(5)
+    c = hd.Range(4, 3)
+
+    assert not a.is_same(b)
+    assert not a.is_same(c)
+    assert a.is_same(hd.Range(4))
+
+    assert not a.is_same(hd.Boolean())
+
+def test_range_decompose():
+    assert not hd.Range(3).decompose() # empty list
