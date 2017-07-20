@@ -46,6 +46,19 @@ class Join(Domain):
                 yield v
             index += 1
 
+    def decompose(self):
+        return tuple(self.domains)
+
+    def is_same(self, domain):
+        if not isinstance(domain, Join):
+            return False
+
+        if len(self.domains) != len(domain.domains):
+            return False
+
+        return all(d1.is_same(d2)
+                   for d1, d2 in zip(self.domains, domain.domains))
+
     def _compute_ratio_sums(self):
         ratios = self.ratios
         if ratios is None:

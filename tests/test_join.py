@@ -111,3 +111,18 @@ def test_join_to_values_maxsize():
     assert isinstance(v, hd.Join)
     assert all(isinstance(d, hd.Values) for d in v.domains)
     assert list(c) == list(v)
+
+def test_join_decompose():
+    a = hd.Range(5)
+    b = hd.Values(("a", "b"))
+    c = a + b
+
+    assert c.decompose() == (a, b)
+
+def test_join_is_same():
+    a = hd.Range(5)
+    b = hd.Values(("a", "b"))
+    c = a + b
+
+    assert c.is_same(a + b)
+    assert not c.is_same(b)
