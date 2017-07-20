@@ -41,6 +41,17 @@ class ASet(Domain):
     def create_cn_iter(self):
         yield self.cache[0]
 
+
+    def decompose(self):
+        return tuple()
+
+    def is_same(self, domain):
+        if not isinstance(domain, ASet):
+            return False
+
+        return self._size == domain.size # TODO: is it correct?
+
+
     def __repr__(self):
         return "<ASet id={} size={} name={}>".format(
             self.aset_id, self._size, self.name)
