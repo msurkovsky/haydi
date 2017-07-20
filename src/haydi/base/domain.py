@@ -62,6 +62,33 @@ class Domain(object):
                 yield v
                 i += 1
 
+    def decompose(self):
+        """
+        Decompose a domain into its parts. The sub-domains are returned
+        in the same order of as were placed into the constructor of a domain.
+
+        Example:
+            >>> p = hd.Range(5) * hd.Range(3)
+            >>> p.decompose() # return tuple of the two ranges
+            (<Range size=5 {0, 1, 2, 3, 4}>, <Range size=3 {0, 1, 2}>)
+        """
+        raise NotImplementedError()
+
+    def is_same(self, domain):
+        """
+        Find out whether or not the domain represents same structure.
+
+        Example:
+            >>> a = hd.Range(3)
+            >>> b = hd.Range(3)
+            >>> c = hd.Range(5)
+            >>> a.is_same(b)
+            True
+            >>> a.is_same(c)
+            False
+        """
+        raise NotImplementedError()
+
     # Internal
 
     def _set_flags_from_domain(self, domain):
