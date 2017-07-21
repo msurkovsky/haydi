@@ -26,3 +26,12 @@ class Permutations(Domain):
 
     def _remap_domains(self, transformation):
         return Permutations(transformation(self.domain), self.name)
+
+    def decompose(self):
+        return (self.domain,)
+
+    def is_same(self, domain):
+        if not isinstance(domain, Permutations):
+            return False
+
+        return self.domain.is_same(domain.domain)
