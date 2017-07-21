@@ -92,3 +92,17 @@ def test_sequence_to_values_maxsize():
     assert isinstance(v, hd.Sequences)
     assert isinstance(v.domain, hd.Values)
     assert list(s) == list(v)
+
+def test_sequence_decompose():
+    r = hd.Range(3)
+    s = hd.Sequences(r, 0, 2)
+
+    assert s.decompose() == (r,)
+
+def test_squence_is_same():
+    n = 3
+    s = hd.Sequences(hd.Range(n), 0, 2)
+
+    assert s.is_same(hd.Sequences(hd.Range(n), 0, 2))
+    assert not s.is_same(hd.Sequences(hd.Range(n+2), 0))
+    assert not s.is_same(hd.Sequences(hd.Range(n), 0))

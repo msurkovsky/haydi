@@ -47,6 +47,17 @@ class Sequences(Domain):
     def generate_one(self):
         return self.helper.generate_one()
 
+    def decompose(self):
+        return (self.domain,)
+
+    def is_same(self, domain):
+        if not isinstance(domain, Sequences):
+            return False
+
+        return self.domain.is_same(domain.domain) and \
+            self.min_length == domain.min_length and \
+            self.max_length == domain.max_length
+
     def _remap_domains(self, transformation):
         return Sequences(transformation(self.domain), self.min_length,
                          self.max_length, self.name)
