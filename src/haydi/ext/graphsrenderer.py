@@ -9,8 +9,11 @@ class GRMissingEdgeDomainException(HaydiException):
 
 class GraphsRenderer(object):
 
-    def __init__(self, domain):
+    def __init__(self, domain, values=None):
         self.data_domain = domain
+        if values is None:
+            values = domain.run()
+        self.values = tuple(values)
 
         self.node_domain = None
         self.edge_domain = None
@@ -29,9 +32,13 @@ class GraphsRenderer(object):
         pass
 
     def _identify_graph_structure(self):
-        if node_domain is None:
-            pass # TODO:
+        if self.node_domain is None:
+            if self.edge_domain is None:
+                pass
+            else:
+                pass
 
+        # at this point nodes are already known
         if self.edge_domain is None:
             pass # TODO:
 
