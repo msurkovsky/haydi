@@ -308,6 +308,20 @@ class TransformedDomain(Domain):
         self.transformation = transformation
         transformation.init_transformed_domain(self, parent)
 
+    def decompose(self):
+        if isinstance(self.transformation, transform.FilterTransformation):
+            return (self.parent,)
+        return tuple() # TODO: is it correct?
+
+    def is_same(self, domain):
+        # TODO: this is not correct
+
+        if not isinstance(domain, TransformedDomain) or \
+                not self.parent.is_same(domain.parent):
+            return False
+
+        return True
+
     def _compute_size(self):
         return self.transformation.size_of_transformed_domain(self.parent.size)
 
