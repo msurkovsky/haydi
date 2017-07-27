@@ -1,3 +1,4 @@
+from collections import Iterable
 from haydi.base.graph import Graph
 from haydi.base.exception import HaydiException
 from haydi.base.basictypes import Atom
@@ -5,8 +6,14 @@ from haydi.base.basictypes import Atom
 class GRException(HaydiException):
     pass
 
+
+class GRWrongEdgeFormatException(GRException):
+    pass
+
+
 class GRMissingNodeDomainException(GRException):
     pass
+
 
 class GRMissingEdgeDomainException(GRException):
     pass
@@ -18,8 +25,8 @@ def is_primitive(type):
 
 class InstGraphRenderer(object):
 
-    def __init__(self, data):
-        self.data = tuple(data)
+    def __init__(self, g_structure):
+        self.g_structure = tuple(g_structure)
 
         # TODO: even these two parameters should respect a hierarchy
         # If it was like this, it means that GraphRenderer works for one graph!
@@ -36,75 +43,82 @@ class InstGraphRenderer(object):
         return self
 
     def edges(self, edges): # TODO: do I need such a method?
-        """Set edges data.
+        raise Exception("Not implemented yet.")
+        # """Set edges data.
 
-        - imho, i don't want the entire set of edges, especially not in a case where it would set of sets of edges.
-        - a natural information is about a type, i.e. description saying **how one edge looks**.
+        # - imho, i don't want the entire set of edges, especially not in a case where it would set of sets of edges.
+        # - a natural information is about a type, i.e. description saying **how one edge looks**.
 
-        (?) What if the data is a set of graphs? -> would 'edges' be a set of lists of edges?
-        """
-        self.edges = edges
-        return self
+        # (?) What if the data is a set of graphs? -> would 'edges' be a set of lists of edges?
+        # """
+        # self.edges = edges
+        # return self
 
-    def render(self): # TODO: is not render but rather process_data; render should create overview
+    def assemble_graph(self):
+        def assemble_edge(e_structure, vertices, data_print=lambda data: str(data)):
+            nodes = []
+            data = []
+
+            for elem in e_structure:
+                if elem in vertices:
+                    nodes.append(elem)
+                else:
+                    data.append(elem)
+
+            if len(nodes) != 2:
+                raise GRWrongEdgeFormatException(
+                    "The edge consists of more or less than two vertices."
+                    " Try to use ###NAME### function to precise edge.")
+
+            return (tuple(nodes), ", ".join(map(data_print, data)))
+
+
         # NOTE: first implementation works only with nodes; edges are ignored.
-        def identify_nodes_in_graph(graph):
-            nodes = set()
-            for edge in graph:
-                n1, n2 = edge # TODO: consider more complicated edges than two elements
-                nodes.add(1)
-                nodes.add(2)
-            return nodes
 
-        assert len(self.data) > 0
-        depth, elem = 0, self.data[0]
-        while not is_primitive(e):
-            assert len(elem) > 0
-            elem = elem[0]
-            depth += 1
-        assert 0 < depth < 3 # only one graph or list of graphs is accepted
+        # if not self.nodes: # not known nodes
+        #     nodes = set()
+        #     if depth == 1:
+        #         nodes.union(identify_nodes_in_graph(self.data))
+        #     elif depth == 2:
+        #         for g in self.data:
+        #             nodes.union(identify_nodes_in_graph(g))
+        #     self.nodes = nodes
 
-        if not self.nodes: # not known nodes
-            nodes = set()
-            if depth == 1:
-                nodes.union(identify_nodes_in_graph(self.data))
-            elif depth == 2:
-                for g in self.data:
-                    nodes.union(identify_nodes_in_graph(g))
-            self.nodes = nodes
+        g = Graph()
+        if isinstance(self.graph_structure, dict): # graphs as mappings; ORIENTED
+            if not all(k in self.nodes in self.graph_structure.keys()):
+                raise GRMissingNodeDomainException(
+                    "There are nodes in structure out of"
+                    " specified set of nodes.")
 
-        # TODO: create hd.Graph -> maybe replace hd.Graph with https://graph-tool.skewed.de/
-        if depth == 1:
-            graphs = [self.data]
-        elif depth == 2:
-            graphs = self.data
+            for from_node, to_nodes in self.graph_structure.iteritems():
+                if isinstance(to_nodes, dict):
+                    raise GRWrongEdgeFormatException("Unknown format of edge.")
 
-        return graphs
+                n1 = g.node(from_node)
 
-        # def assemble_graph(edges):
-        #     pass
+                if not isinstance(to_nodes, Iterable):
+                    to_nodes = (to_nodes,)
 
-        # def process_category(depth, data):
-        #     c_data = []
-        #     if depth > 1:
-        #         for c in data:
-        #             c_data.append(process_category(depth-1, c))
-        #         category.append(c_data)
+                for n in to_nodes:
+                    n2 = g.node(n)
+                    n1.add_arc(n1) # TODO, solve data
 
-        #     else if depth == 1:
-        #         g = assemble_graph(data)
-        #         c_data.append(g)
+        else: # collection of edges; (NOT-)ORIENTED
+            for e in self.graph_structure:
+                (n1, n2), data = assemble_edge(e, self.nodes)
+                n1 = g.node(n1)
+                n2 = g.node(n2)
+                n1.add_arc(n2, data)
+                if isinstance(e, set):
+                    n2.add_arc(n1, data)
+        return g
 
-        #     else:
-        #         raise GRException("Cannot process separate edges")
+    # #TODO: compose HTML page consisting of processed graphs
 
-        #     return c_data
-
-        # depth = self._identify_graph_structure()
-
-        # #TODO: compose HTML page consisting of processed graphs
-        # return process_category(depth, self.data)
-
+    def _identify_nodes(self, graph_structure):
+        # NOTE: - nodes should be of the same type; does it make sense to have a list of nodes like: (1,2,"hello", (1,2,3), ...)? -> imho NO
+        pass
     # def _identify_graph_structure(self):
     #     depth = 0 # how deep has to go in a structure to iterate over edges
     #     if self.nodes is None:
