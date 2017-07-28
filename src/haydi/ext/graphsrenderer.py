@@ -23,7 +23,7 @@ class GRMissingEdgesException(GRException):
 PRIMITIVE_TYPES = (int, str, Atom) # TODO: do I need something like this? Maybe it could be used within process of automatic identifying nodes
 
 
-class InstGraphRenderer(object):
+class GraphRenderer(object):
 
     def __init__(self, graph_structure):
         self.graph_structure = tuple(graph_structure)
@@ -103,6 +103,7 @@ class InstGraphRenderer(object):
                     n1.add_arc(n1) # TODO, solve data; how to specify data within dict; tuple, list of tuples
 
         else: # collection of edges; (NOT-)ORIENTED
+            directed = True
             for e in self.graph_structure:
                 (n1, n2), data = assemble_edge(e, self._nodes)
                 v1 = g.node(n1)
@@ -112,7 +113,8 @@ class InstGraphRenderer(object):
 
                 v1.add_arc(v2, data)
                 if isinstance(e, set):
-                    v2.add_arc(v1, data)
+                    directed = False
+            g.set_directed(directed)
         return g
 
     def _identify_nodes(self, graph_structure):
