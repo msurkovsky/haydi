@@ -1,5 +1,7 @@
 from graph_tool.all import Graph, graph_draw
 
+# TODO: use graph_tool optionally; currently the structure is bottleneck; what's the advantage of usage the library when the same structure is stored here(?)!
+
 class Arc(object):
 
     def __init__(self, edge, node, data):
@@ -12,11 +14,20 @@ class Arc(object):
 
 class Node(object):
 
+#     color = None
+#     fillcolor = None
+#     label = ""
+#     shape = "circle"
+
     def __init__(self, vertex, graph):
         self.vertex = vertex
         self.arcs = []
 
         self._graph = graph
+
+    @property
+    def name(self):
+        self._graph._vnames[self.vertex]
 
     def add_arc(self, node, data=None):
         edge = self._graph.add_edge(self.vertex, node.vertex)
@@ -28,40 +39,23 @@ class Node(object):
                 return arc
         return None
 
-# class Node(object):
+    def merge_arcs(self, merge_fn):
+        if len(self.arcs) < 2:
+            return
+        node_to_arcs = {}
+        for arc in self.arcs[:]: # TODO: try to use graph_tool structure
+            a = node_to_arcs.get(arc.node)
+            if a is None:
+                node_to_arcs[arc.node] = arc
+            else:
+                self.arcs.remove(arc)
+                self._graph.remove_edge(arc._edge)
 
-#     color = None
-#     fillcolor = None
-#     label = ""
-#     shape = "circle"
+                # TODO: how to make edge label
+                a.data = merge_fn(a.data, arc.data)
 
-#     def __init__(self, key):
-#         self.key = key
-#         self.arcs = []
-
-#     def add_arc(self, node, data=None):
-#         self.arcs.append(Arc(node, data))
-
-#     def arc_by_data(self, data):
-#         for arc in self.arcs:
-#             if arc.data == data:
-#                 return arc
-#         return None
-
-#     def merge_arcs(self, merge_fn):
-#         if len(self.arcs) < 2:
-#             return
-#         node_to_arcs = {}
-#         for arc in self.arcs[:]:
-#             a = node_to_arcs.get(arc.node)
-#             if a is None:
-#                 node_to_arcs[arc.node] = arc
-#             else:
-#                 self.arcs.remove(arc)
-#                 a.data = merge_fn(a.data, arc.data)
-
-#     def __repr__(self):
-#         return "<Node {}>".format(self.key)
+    def __repr__(self):
+        return "<Node {}>".forma(self.name)
 
 
 class Graph(object):
@@ -119,7 +113,7 @@ class Graph(object):
         stream.append("}\n")
         return "".join(stream)
 
-    def merge_arcs(self, merge_fn): # TODO: 
+    def merge_arcs(self, merge_fn): # TODO:
         raise Exception("Need a new implementation.")
         for node in self.nodes.values():
             node.merge_arcs(merge_fn)
