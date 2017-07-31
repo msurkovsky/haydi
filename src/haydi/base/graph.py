@@ -45,10 +45,14 @@ class Graph(object):
 
     def __init__(self):
         self.nodes = {}
+        self.directed = True
 
     @property
     def size(self):
         return len(self.nodes)
+
+    def set_directed(self, directed):
+        self.directed = directed
 
     def has_node(self, key):
         return key, self.nodes
@@ -78,7 +82,8 @@ class Graph(object):
             f.write(dot)
 
     def make_dot(self, name):
-        stream = ["digraph " + name + " {\n"]
+        g_type, e_type = ("digraph", "->") if self.directed else ("graph", "--")
+        stream = ["{} name {{\n".format(g_type)]
         for node in self.nodes.values():
             extra = ""
             if node.color is not None:
@@ -88,8 +93,8 @@ class Graph(object):
             stream.append("v{} [label=\"{}\" shape=\"{}\"{}]\n".format(
                 id(node), node.label, node.shape, extra))
             for arc in node.arcs:
-                stream.append("v{} -> v{} [label=\"{}\"]\n".format(
-                    id(node), id(arc.node), str(arc.data)))
+                stream.append("v{0} {3} v{1} [label=\"{2}\"]\n".format(
+                    id(node), id(arc.node), str(arc.data), e_type))
         stream.append("}\n")
         return "".join(stream)
 
