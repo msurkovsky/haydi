@@ -4,25 +4,6 @@ from haydi.base.exception import HaydiException
 from haydi.base.basictypes import Atom
 
 
-class GRException(HaydiException):
-    pass
-
-
-class GRWrongEdgeFormatException(GRException):
-    pass
-
-
-class GRMissingNodesException(GRException):
-    pass
-
-
-class GRMissingEdgesException(GRException):
-    pass
-
-
-PRIMITIVE_TYPES = (int, str, Atom) # TODO: do I need something like this? Maybe it could be used within process of automatic identifying nodes
-
-
 class GraphRenderer(object):
 
     def __init__(self, graph_structure):
@@ -42,16 +23,14 @@ class GraphRenderer(object):
         self._nodes = nodes
         return self
 
-    def edges(self, edges): # TODO: do I need such a method?
-        raise Exception("Not implemented yet.")
-
-    def assemble_graph(self):
+    def assemble_graph(self, labeling_edge_fn=None):
         """Tries to assemble haydi.base.graph.Graph from given structure."""
 
-        def assemble_edge(e_structure, vertices, data_print=lambda data: str(data)):
+        def assemble_edge(e_structure, vertices, labeling_edge_fn):
             nodes = []
             data = []
 
+            # separate edge vertices from data info
             for elem in e_structure:
                 if elem in vertices:
                     nodes.append(elem)
@@ -59,11 +38,18 @@ class GraphRenderer(object):
                     data.append(elem)
 
             if len(nodes) != 2:
-                raise GRWrongEdgeFormatException(
+                raise Exception(
                     "The edge consists of more or less than two vertices."
                     " Try to use ###NAME### function to precise edge.") # TODO: support a mapping function or so that pick up important things to constructing an edge
 
-            return (tuple(nodes), ", ".join(map(data_print, data)))
+            # format data values into edge label
+            if labeling_edge_fn is None:
+                edge_label = ", ".join(map(str, data))
+            else:
+                edge_label = labeling_edge_fn(tuple(data))
+
+            # couple of nodes and string describing edge label
+            return (tuple(nodes), edge_label)
 
 
         # NOTE: first implementation works only with nodes; manually specified edges are ignored.
@@ -73,7 +59,7 @@ class GraphRenderer(object):
             nodes, labels = self._identify_nodes(self.graph_structure)
 
             if not nodes:
-                raise GRMissingNodesException(
+                raise Exception(
                     "Unknown nodes. Automatic identification failed."
                     " Please specify nodes manually.")
 
@@ -81,15 +67,17 @@ class GraphRenderer(object):
             self._node_labels = labels
 
         g = Graph()
+
+        # parse mappings in format `{from node : to node/[to nodes]}`
         if isinstance(self.graph_structure, dict): # graphs as mappings; ORIENTED
             if not all(k in self._nodes in self.graph_structure.keys()):
-                raise GRMissingNodesException(
+                raise Exception(
                     "There are nodes in structure out of"
                     " specified set of nodes.")
 
             for from_node, to_nodes in self.graph_structure.iteritems():
                 if isinstance(to_nodes, dict):
-                    raise GRWrongEdgeFormatException("Unknown format of edge.")
+                    raise Exception("Unknown format of edge.")
 
                 n1 = g.node(from_node)
                 n1.label = self._node_labels[from_node]
@@ -105,7 +93,7 @@ class GraphRenderer(object):
         else: # collection of edges; (NOT-)ORIENTED
             directed = True
             for e in self.graph_structure:
-                (n1, n2), data = assemble_edge(e, self._nodes)
+                (n1, n2), data = assemble_edge(e, self._nodes, labeling_edge_fn)
                 v1 = g.node(n1)
                 v1.label = self._node_labels[n1]
                 v2 = g.node(n2)
@@ -138,7 +126,7 @@ class GraphRenderer(object):
 
                 relevant = filter(lambda (t, c): c == 2, counts.iteritems())
                 if len(relevant) != 1:
-                    raise GRException(
+                    raise Exception(
                         "Unable to identify nodes from the given structure."
                         " Please specify nodes manually.")
                 node_t, _ = relevant.pop()
@@ -147,9 +135,5 @@ class GraphRenderer(object):
         return (nodes, get_default_node_labels(nodes))
 
 
-
 def get_default_node_labels(nodes):
     return {node: str(node) for node in nodes}
-
-def is_primitive(type):
-    return type in PRIMITIVE_TYPES
