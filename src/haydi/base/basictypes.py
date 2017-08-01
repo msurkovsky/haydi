@@ -42,6 +42,9 @@ class Set(object):
     def __hash__(self):
         return hash(self.items)
 
+    def __iter__(self):
+        return iter(self.items)
+
     def __repr__(self):
         return "{{{}}}".format(", ".join(repr(i) for i in self.items))
 
@@ -75,6 +78,9 @@ class Map(object):
 
     def __hash__(self):
         return hash(self.items)
+
+    def __iter__(self):
+        return iter(self.items)
 
     def __repr__(self):
         r = []
