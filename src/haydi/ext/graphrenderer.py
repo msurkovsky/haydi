@@ -70,6 +70,10 @@ class GraphRenderer(object):
 
         g = Graph()
 
+        for node in self._nodes: # add all nodes into graph
+            n = g.node(node)
+            n.label = self._node_labels[node]
+
         # parse mappings in format `{from node : to node/[to nodes]}`
         if isinstance(self.graph_structure, dict): # graphs as mappings; ORIENTED
             if not all(k in self._nodes in self.graph_structure.keys()):
@@ -82,14 +86,12 @@ class GraphRenderer(object):
                     raise Exception("Unknown format of edge.")
 
                 n1 = g.node(from_node)
-                n1.label = self._node_labels[from_node]
 
                 if not isinstance(to_nodes, Iterable):
                     to_nodes = (to_nodes,)
 
                 for n in to_nodes:
                     n2 = g.node(n)
-                    n2.label = self._node_labels[n]
                     n1.add_arc(n1) # TODO, solve data; how to specify data within dict; tuple, list of tuples
 
         else: # collection of edges; (NOT-)ORIENTED
