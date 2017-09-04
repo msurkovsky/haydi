@@ -2,10 +2,7 @@
 How to create your own program
 ==============================
 
-This text presents an introductory guide that should help people to create their own program using **Haydi** framework. Haydi is a framework focusing on combinatorics problems. It allows users to formulate their problems easily and lets them check whether or not certain criteria are met. Moreover, instances confirming or contradicting the hypotheses are provided. The advantage of using Haydi is that the **resulting program can run directly on a supercomputer**, hence quite large structures can be examined. On the other hand, such infrastructure is not demanded and programs may run on one standard PC or distributively among a specific number of PCs.
-
-
-Here a user can find a **step-by-step tutorial built upon a specific problem**; particulary, Cerny's hypothesis about `synchronizing words`_ in deterministic finite automata (DFA). The hypotesis states the question: *if a DFA has a synchronizing word, must it have one of length at most* :math:`\mathit{(n − 1)^2}` *?* This is an open question and the resulting program does not have an ambition to solve it. But it shows how much or perhaps how little effort it may take to create such a program and how large instances can be checked with it.
+This text presents an introductory guide that should help people to create their own program using **Haydi** framework. Here a user can find a **step-by-step tutorial built upon a specific problem**; particulary, Cerny's hypothesis about `synchronizing words`_ in deterministic finite automata (DFA). The hypotesis states the question: *if a DFA has a synchronizing word, must it have one of length at most* :math:`\mathit{(n − 1)^2}` *?* This is an open question and the resulting program does not have an ambition to solve it. But it shows how much or rather how little effort it may take to create such a program and how large instances can be checked with it.
 
 .. _synchronizing words: https://en.wikipedia.org/wiki/Synchronizing_word
 
@@ -29,29 +26,19 @@ Here we start making our first program using Haydi framwork. The problem of *syn
 
 Before we start
 ~~~~~~~~~~~~~~~
-Before we can even start we need to **install Haydi**. Haydi is available on `GitHub`_ as an open-source project. It is distributed as a module that can be used in `Python`_ language. All the necessary information about instalaction and project's structure can be found on its page.
-
-.. _GitHub: https://github.com/spirali/haydi
-.. _Python: https://www.python.org/
+Before we can even start we need to **install Haydi**, The installation is described :doc:`here <./install>`. 
 
 Link the project and import Haidy modul
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-First of all, when we start making our new program, we need to tell where Haydi modul is located and put the location into program's path. We can do this as follows:
-
->>> import sys
->>> sys.path.insert(0, "../src") # the program is placed in subdirectory of project's root
-
-At this point we can import Haydi modul. It cointain all of the structures that are par of public API. All the structures with their description can be found in the `reference manual`_.
-
-.. _reference manual: http://haydi.readthedocs.io/en/scheduler/index.html
+All the structures that are part of public API are located in package ``haydi``, hence all of the program starts with a line like this one:
 
 >>> import haydi as hd
 
 Prepare the structures
 ~~~~~~~~~~~~~~~~~~~~~~
-Here we are in state when we succesfully installed Haydi, linked it to our program, and import the module. Now, we can start to make our program.
+Here we are in a state when we successfully installed Haydi and import the basic module. Now, we can start to make our program.
 
-As stated in the introduction, Haydi is a suitable framework for programs that either systematicaly or randomly explore a bunch of a problem's instances and find those satisfying certain criteria. In this context, **the first task** we are going to address, is to define that *bunch* of the problem's instances.
+Haydi is a suitable framework for programs that either systematicaly or randomly explore a bunch of a problem's instances and find those satisfying certain criteria. In this context, **the first task** we are going to address, is to define that *bunch* of the problem's instances.
 
 The very basic structure in Haydi is :class:`haydi.Domain`. It represents a common interface for defining a set of data and how to work with it. A domain can be created by using one from the predefined or as composition of those already created. An example of simple domain is :class:`haydi.Range`, that defines a sequence of integers going from *start* upto *end* with *step* between values.
 
