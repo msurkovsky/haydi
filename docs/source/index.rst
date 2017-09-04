@@ -21,3 +21,9 @@ Haydi
    cookbook
    perftips
    contact
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Tutorials
+
+   createownapp
