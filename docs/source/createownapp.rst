@@ -59,6 +59,9 @@ The thrid item is transition function. The definition states that from a pair of
 >>> # lrule = states * alphabet
 >>> 
 >>> deltaf = hd.Mapping(lrule, states)
+>>>
+>>> # upper bound of the sync word maximal length
+>>> max_steps = (n_states**3 - n_states) / 6
 
 At this moment, we have defined all basic structures we need to check whether or not a given DFA is synchronizable.
 
@@ -66,48 +69,66 @@ Compute synchronizing word
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 The problem of finding the shortest synchronizing word is known to be NP-Complete; therefore, to compute the shortest synchronizing word we need to find a sequence, :math:`\sigma \in \Sigma^*` of as many simultaneous runs as the number of states. Each run starts in different state and the aim is to find the :math:`\sigma` sequence leading to one state.
 
-In other words, we are looking for a path in a new automaton :math:`A'` that is build from the original one; the set of states makes power set of original automanton states, as the initial state is used a state representing a set containing all original states, and the set of final states are all singleton sets.
+In other words, we can imagine that we have as many copies of the automaton as the number of states that run concurrently, but each one starts at different state. The run of such system ends when all automata reach the same state.
 
-Such a system can be also viewed as a `Label Transition System`_ (LTS). For this purpose Haydi contains a basic (abstract) implementation of :class:`haydi.DLTS`, where *D* states for *Deterministic*. For a specific system we need to create a new class, that inherits from the basic *DLTS* and implement **step(state, action)** method. We define **DfaLTS** as follows:
+We are not going to run concurrent copies of an automaton, but only one automaton with initial state represented by set containing all of the automanton's states. The run ends when the size of the set is reduced to one; reach a singleton set.
+
+Such a system can be also viewed as a `Label Transition System`_ (LTS). For this purpose Haydi contains a basic (abstract) implementation of :class:`haydi.DLTS`, where *D* states for *Deterministic*. A user can derive from this class, implement `step` method, and use such a structure; or there is already implemented a search algorithm upon an LTS system in package ``haydi.algorithms``.
 
 .. _Label Transition System: https://en.wikipedia.org/wiki/Transition_system
+
+The first option may look as follows. Firstly we define class ``DfaLTS`` and then a function computing the shortest synchronization word using it.
+
 
 >>> class DfaLTS(hd.DLTS):
 >>>     def __init__(self, deltaf, actions):
 >>>         hd.DLTS.__init__(self, actions)
 >>>         self.deltaf = deltaf
 >>>  
->>>     def step(self, state, action):
->>>         return self.deltaf[(state, action)]
-
-Now, we can define a procedure that computes the shortest synchronizing word of a given DFA. Firstly, we instantiate DFA with **DfaLTS** and the definition of :math:`\mathbf{\delta}` **function**. Then we create :math:`n` -tuple, where :math:`n` is a number of states. For this purpose we use a specific implementation of product for DLTS; **DLTSProduct((dlts1[, dlts2[, ...]]))**. Such a system we can explore and find the shortest path from the initial state, :math:`\{q_1, q_2, \cdots, q_n\}, q_i \in Q, i \in \mathbb{N}`, to a singleton state, :math:`\{q\}, q \in Q`.
-
-DLTS object supports a set of Breath First Search (BFS) procedures. In this case we use **bfs_path** that returns not only resulting found element (state) but also a path leading to it.
-
-**TODO: document run (? actions)**
-
+>>>     def step(self, state_set, action):
+>>>         return frozenset(self.deltaf[(state, action)]
+>>>                          for state in state_set)
+>>>
+>>>
 >>> def compute_shortest_sync_word(delta_f):
 >>>    dfa = DfaLTS(delta_f, alphabet)
->>>    dfa_n_tuple = hd.DLTSProduct(tuple(dfa for i in range(nstates)))
 >>>    
 >>>    init_state = range(nstates)
->>>    is_final = lambda (states, path): len(set(states)) == 1 # singleton state
+>>>    is_final = lambda (states, path): len(states) == 1 # singleton state
 >>>    is_shortest = lambda (states, path): -len(path)
 >>>    
 >>>    # (1) run BFS procedure
 >>>    # (2) filter only those paths that leads a final state
 >>>    # (3) take only shortest paths
 >>>    # (4) take one representative
->>>    sync_state, path = dfa_n_tuple.bfs_path(init_state)\
->>>                                  .filter(is_final)\
->>>                                  .max_all(is_shortest)\
->>>                                  .take(1)\
->>>                                  .run()
+>>>    sync_state, path = dfa.bfs_path(init_state, max_depth=max_steps)\
+>>>                          .filter(is_final)\
+>>>                          .max_all(is_shortest)\
+>>>                          .take(1)\
+>>>                          .run()
 >>>                    
 >>>    #(transition function, the length of the shortest path, path, and synchronizing state)
 >>>    return (delta_f, len(path), path, sync_state)
 
-We have all parts we need and cat put it alltogether into resulting program.
+The second option using ``search`` function from ``haydi.algorithms`` would look very similarly.
+
+>>> def check_automaton(delta):
+>>>     def step(state, depth):
+>>>         # A step in bread-first search; gives a set of states
+>>>         # and return a set reachable by one step
+>>>         for a in alphabet:
+>>>             yield frozenset(delta[(s, a)] for s in state)
+>>>
+>>>     delta = delta.to_dict()
+>>>     return search.bfs(
+>>>         init_state,  # Initial state
+>>>         step,        # Step
+>>>         lambda state, depth: depth if len(state) == 1 else None,
+>>>                      # Run until we reach a single state
+>>>         max_depth=max_steps,  # Limit depth of search
+>>>         not_found_value=0)    # Return 0 when we exceed depth limit
+
+Now, we have all parts we need and cat put it alltogether into resulting program.
 
 Entire program
 ~~~~~~~~~~~~~~
@@ -120,40 +141,44 @@ Entire program
 >>>        self.deltaf = deltaf
 >>> 
 >>>    def step(self, state, action):
->>>        return self.deltaf[(state, action)]
+>>>        return frozenset(self.deltaf[(state, action)]
+>>>                         for state in state_set)
 >>>    
 >>> def compute(nstates, nsymbols):
 >>>    
 >>>    states = hd.Range(nstates)
 >>>    alphabet = hd.Range(nsymbols)
 >>> 
->>>    print states, alphabet
 >>>    def compute_shortest_sync_word(delta_f):
 >>>        dfa = DfaLTS(delta_f, alphabet)
->>>        dfa_n_tuple = hd.DLTSProduct(tuple(dfa for i in range(nstates)))
->>>        print dfa_n_tuple
->>> 
->>>        init_state = tuple(range(nstates))
->>>        is_final = lambda (states, path): len(set(states)) == 1 # singleton state
+>>>
+>>>        init_state = range(nstates)
+>>>        is_final = lambda (states, path): len(states) == 1 # singleton state
 >>>        is_shortest = lambda (states, path): -len(path)
 >>> 
 >>>        # (1) run BFS procedure
 >>>        # (2) filter only those paths that leads a final state
 >>>        # (3) take only shortest paths
->>>        sync_state, path = dfa_n_tuple.bfs_path(init_state)\
+>>>        sync_state, path = dfa_n_tuple.bfs_path(init_state, max_depth=max_states)\
 >>>                                      .filter(is_final)\
->>>                                      .max_all(is_shortest) # TODO: what's the result of max_all?
->>>        print sync_state, path
+>>>                                      .max_all(is_shortest)
+>>>
 >>>        #(transition function, the length of the shortest path, path, and synchronizing state)
 >>>        return (delta_f, len(path), path, sync_state)
 >>>    
 >>>    lrule = hd.Product((states, alphabet))
 >>>    deltaf = hd.Mapping(lrule, states)
 >>>    
->>>    return deltaf.take(1).map(compute_shortest_sync_word).run()
+>>>    pipeline deltaf.map(compute_shortest_sync_word).max(size=1)
+>>>    return pipeline.run()
 >>>    
 >>> 
 >>> if __name__ == "__main__":
 >>>    
->>>    result = compute(3, 2)
+>>>    n_states = 3
+>>>    n_symbols = 2
+>>>    result = compute(n_states, n_symbols)
+>>>    print ("The maximal length of a minimal reset word for an "
+>>>           "automaton with {} states and {} symbols is {}.".
+>>>           format(n_states, n_symbols, result[1]))
 >>>    print result
